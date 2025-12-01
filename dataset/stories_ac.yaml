@@ -1,0 +1,19 @@
+# dataset/stories_ac.yaml
+tests:
+  - description: "Password reset flow"
+    vars:
+      user_story: |
+        As a user, I want to reset my password so that I can regain access to my account.
+      acceptance_criteria: |
+        - User receives reset link on registered email.
+        - Reset link expires after 30 minutes.
+        - User can set a new password that meets password policy (min 8 chars, 1 number).
+  - description: "Create new account"
+    vars:
+      user_story: |
+        As a new visitor, I want to create an account so that I can access premium features.
+      acceptance_criteria: |
+        - User can sign up with email and password.
+        - Email must be unique.
+        - Show error if email already exists.
+        - Show success message after successful registration.
