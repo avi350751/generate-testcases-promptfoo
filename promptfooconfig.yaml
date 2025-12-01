@@ -1,0 +1,73 @@
+# promptfoo.yaml
+description: "Manual Test Case Generator - Accuracy & Relevance Evaluation"
+
+prompts:
+  - id: test-case-generator
+    label: "User story → Manual test cases"
+    # Prompt string is not used if you rely purely on provider.py logic,
+    # but leave something descriptive.
+    prompt: |
+      Generate manual test cases based on the provided user story and acceptance criteria.
+
+providers:
+  - id: file://./helper.py
+    label: "LangChain Test Case Generator"
+
+tests:
+  # Load from external dataset file
+  - description: "Password reset flow"
+    vars:
+      user_story: |
+        As a user, I want to reset my password so that I can regain access to my account.
+      acceptance_criteria: |
+        - User receives reset link on registered email.
+        - Reset link expires after 30 minutes.
+        - User can set a new password that meets password policy (min 8 chars, 1 number).
+    assert:
+      # 1) Structural: valid JSON
+      - type: is-json
+
+
+      # 2) Accuracy / coverage: every AC must be addressed
+      - type: llm-rubric
+        metric: "accuracy"
+        value: >
+          Check if the generated test cases adequately validate all the acceptance criteria.
+          Penalize missing criteria or incorrect interpretation.
+          Score from 0 to 1.
+
+      # 3) Relevance: no scope creep / hallucination
+      - type: llm-rubric
+        metric: "relevance"
+        value: >
+          The test cases must be strictly relevant to the user story and acceptance criteria.
+          Penalize if they introduce features, flows, or fields not mentioned in the story or AC.
+
+      # 4) Manual test style: steps readable and sequential
+      - type: llm-rubric
+        metric: "manual-test-quality"
+        value: >
+          Judge whether the test steps are written in a clear, sequential,
+          manual-test style (step 1, step 2, etc.) and would be executable by a manual tester.
+
+  - description: "Account creation flow"
+    vars:
+      user_story: |
+        As a new visitor, I want to create an account so that I can access premium features.
+      acceptance_criteria: |
+        - User can sign up with email and password.
+        - Email must be unique.
+        - Show error if email already exists.
+        - Show success message after successful registration.
+    assert:
+      - type: is-json
+      - type: llm-rubric
+        metric: "accuracy"
+        value: >
+          Ensure the generated test cases verify uniqueness constraints and proper handling
+          of existing email addresses.
+      - type: llm-rubric
+        metric: "relevance"
+        value: >
+          Test cases must not invent unrelated fields (like phone number, address, etc.)
+          unless logically necessary and mentioned in the story/AC.
